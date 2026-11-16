@@ -59,6 +59,7 @@ public class FarmScreen implements Screen {
     public void beginDay() {
         fadeTicks = FADE_TICKS;
         warnedLate = false;
+        farm.setSnowing(clock.getWeather() == Weather.SNOWY);
         game.setScreen(this);
     }
 
@@ -138,6 +139,13 @@ public class FarmScreen implements Screen {
             }
             Tool tool = farmer.toolFor(tile);
             if (tool == null) throw new FarmException(tile.hasCrop() ? "Already watered - it grows tonight" : "Nothing to do here");
+            if (tool instanceof SeedBag) {
+                String cropName = ((SeedBag) tool).getCropName();
+                Crop crop = CropFactory.create(cropName);
+                if (!crop.canGrowIn(clock.getSeason())) {
+                    throw new FarmException(cropName + " can only be planted in " + crop.getGrowingSeasonNames());
+                }
+            }
             farmer.use(tool, tile);
             if (checklist != null && tool instanceof SeedBag) checklist.complete(Checklist.Step.PLANT);
             if (checklist != null && tool instanceof WateringCan) checklist.complete(Checklist.Step.WATER);
@@ -167,6 +175,10 @@ public class FarmScreen implements Screen {
         }
         if (tile.hasCrop() && tile.getCrop().isMature()) return "Harvest";
         Tool tool = farmer.toolFor(tile);
+        if (tool instanceof SeedBag
+                && !CropFactory.create(((SeedBag) tool).getCropName()).canGrowIn(clock.getSeason())) {
+            return "Out of season";
+        }
         return tool == null ? null : tool.getActionName();
     }
 
@@ -236,7 +248,7 @@ public class FarmScreen implements Screen {
         int goldBefore = farmer.getGold();
         farmer.earn(earned);
         clock.nextDay(rng);
-        lines.addAll(farm.newDay(clock.getWeather()));   // the animals' news
+        lines.addAll(farm.newDay(clock.getWeather(), rng));   // crop and animal news
         String news = farm.getVillager().newDay(clock.getDay(), rng);
         if (news != null) lines.add(news);
         farmer.wakeUp(DOOR_COL, DOOR_ROW, passedOut);
@@ -294,7 +306,8 @@ public class FarmScreen implements Screen {
         g.setColor(new Color(255, 255, 255, 110));   // the tile SPACE will act on
         g.drawRect(col * Farm.TILE, row * Farm.TILE, Farm.TILE - 1, Farm.TILE - 1);
         drawPeople(g);
-        if (clock.getWeather() == Weather.RAINY) drawRain(g);
+        if (clock.getWeather() == Weather.SNOWY) drawSnow(g);
+        else if (clock.getWeather().watersCrops()) drawRain(g);
         g.setColor(new Color(15, 15, 50, clock.darkness()));
         g.fillRect(0, 0, Ui.WIDTH, Ui.MAP_HEIGHT);
         for (FloatingText text : floatingTexts) text.draw(g);
@@ -312,7 +325,7 @@ public class FarmScreen implements Screen {
         boolean villagerBehind = villager.getRow() <= farmer.getRow();
         drawAnimals(g, true);
         if (villagerBehind) villager.draw(g, game.getFrames());
-        farmer.draw(g);
+        farmer.draw(g, clock.getSeason(), clock.getWeather());
         if (!villagerBehind) villager.draw(g, game.getFrames());
         drawAnimals(g, false);
     }
@@ -353,6 +366,17 @@ public class FarmScreen implements Screen {
             int x = (i * 53 + frames * 2) % (Ui.WIDTH + 20) - 10;
             int y = (i * 97 + frames * 9) % Ui.MAP_HEIGHT;
             g.drawLine(x, y, x - 3, y + 10);
+        }
+    }
+
+    private void drawSnow(Graphics2D g) {
+        int frames = game.getFrames();
+        for (int i = 0; i < 90; i++) {
+            int x = Math.floorMod(i * 71 + frames * (1 + i % 2), Ui.WIDTH);
+            int y = Math.floorMod(i * 43 + frames * (2 + i % 3), Ui.MAP_HEIGHT);
+            int size = 2 + i % 3;
+            g.setColor(new Color(255, 255, 255, 210));
+            g.fillOval(x, y, size, size);
         }
     }
 

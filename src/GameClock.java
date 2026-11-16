@@ -26,10 +26,12 @@ public class GameClock {
         day++;
         minutes = DAY_START;
         ticks = 0;
-        weather = Weather.forecast(rng);
+        weather = Weather.forecast(rng, getSeason());
     }
 
     public int getDay() { return day; }
+    /** Seasons last ten in-game days, cycling Hot, Rainy, Cool. */
+    public Season getSeason() { return Season.forDay(day); }
     public int getMinutes() { return minutes; }
     public Weather getWeather() { return weather; }
     public void setWeather(Weather weather) { this.weather = weather; }

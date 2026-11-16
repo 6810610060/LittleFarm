@@ -77,6 +77,7 @@ public class ShopScreen implements Screen {
         Crop chosen = crops[row];
         g.setColor(Ui.WOOD);
         g.drawString(chosen.getName() + ": " + chosen.getNote(), left + 30, top + 220);
+        Ui.centered(g, "Plant in: " + chosen.getGrowingSeasonNames(), 13, top + 242, Ui.WOOD);
         Ui.centered(g, "Quantity  < " + quantity + " >    Total " + chosen.getSeedPrice() * quantity + "G", 17, top + 268, Ui.INK);
         Ui.centered(g, status, 13, top + 305, status.startsWith("Bought") ? new Color(40, 130, 50) : Ui.WARNING);
         Ui.centered(g, "UP/DOWN crop   LEFT/RIGHT amount   ENTER buy   ESC leave", 12, top + 380, Ui.WOOD);
