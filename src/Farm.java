@@ -3,7 +3,10 @@ import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Random;
 
 public class Farm {
     public static final int TILE = 32;   // pixels
@@ -38,6 +41,7 @@ public class Farm {
 
     private final Tile[][] tiles = new Tile[ROWS][COLS];
     private Villager villager;
+    private boolean snowing;
     private final Pen chickenPen = new Pen("Chicken", new int[][] {{5, 12}, {6, 12}, {7, 12}});
     private final Pen cowPen = new Pen("Cow", new int[][] {{10, 12}, {11, 12}, {12, 12}});
 
@@ -55,6 +59,7 @@ public class Farm {
     }
 
     public Villager getVillager() { return villager; }
+    public void setSnowing(boolean snowing) { this.snowing = snowing; }
 
     /** @return the villager standing on (col, row), or null */
     public Villager villagerAt(int col, int row) {
@@ -104,13 +109,31 @@ public class Farm {
      * have their night too. @return the animals' news for the end-of-day summary
      */
     public List<String> newDay(Weather weather) {
+        return newDay(weather, new Random());
+    }
+
+    public List<String> newDay(Weather weather, Random rng) {
+        Map<String, Integer> stormLosses = new LinkedHashMap<>();
         for (Tile[] line : tiles) {
             for (Tile tile : line) {
                 tile.newDay();
                 if (weather.watersCrops()) tile.soak();
+                if (weather == Weather.STORMY && tile.hasCrop() && rng.nextInt(100) < 35) {
+                    String lostCrop = tile.destroyCrop();
+                    stormLosses.put(lostCrop, stormLosses.getOrDefault(lostCrop, 0) + 1);
+                }
             }
         }
-        List<String> news = new ArrayList<>(chickenPen.newDay());
+        List<String> news = new ArrayList<>();
+        if (!stormLosses.isEmpty()) {
+            StringBuilder loss = new StringBuilder("Storm destroyed crops: ");
+            for (Map.Entry<String, Integer> entry : stormLosses.entrySet()) {
+                if (loss.charAt(loss.length() - 1) != ' ') loss.append(", ");
+                loss.append(entry.getKey()).append(" x").append(entry.getValue());
+            }
+            news.add(loss.toString());
+        }
+        news.addAll(chickenPen.newDay());
         news.addAll(cowPen.newDay());
         return news;
     }
@@ -136,6 +159,11 @@ public class Farm {
                 g.fillRect(x, y, TILE, TILE);
                 g.setColor(tile.isWatered() ? SOIL_WET.darker() : SOIL.darker());
                 for (int i = 6; i < TILE; i += 9) g.drawLine(x + 3, y + i, x + TILE - 4, y + i);
+                if (snowing) {
+                    g.setColor(new Color(235, 244, 250));
+                    g.fillRect(x, y, TILE, 4);
+                    g.fillOval(x + 4 + seed % 13, y + 5, 5, 3);
+                }
                 if (tile.hasCrop()) {
                     tile.getCrop().draw(g, x, y);
                     if (!tile.isWatered() && !tile.getCrop().isMature()) drawDroplet(g, x + 23, y + 2);
@@ -199,12 +227,17 @@ public class Farm {
     }
 
     private void drawGrass(Graphics2D g, int x, int y, int seed) {
-        g.setColor(GRASS);
+        g.setColor(snowing ? new Color(225, 238, 246) : GRASS);
         g.fillRect(x, y, TILE, TILE);
-        g.setColor(GRASS_DARK);
+        g.setColor(snowing ? new Color(195, 216, 230) : GRASS_DARK);
         int tx = x + 5 + seed * 5 % 20, ty = y + 9 + seed * 3 % 16;
         g.drawLine(tx, ty, tx - 2, ty - 5);
         g.drawLine(tx + 3, ty, tx + 4, ty - 6);
+        if (snowing) {
+            g.setColor(new Color(250, 253, 255));
+            g.fillOval(x + 5 + seed % 17, y + 5 + seed % 13, 6, 3);
+            g.fillOval(x + 20 - seed % 9, y + 22 - seed % 7, 5, 3);
+        }
     }
 
     /** The little "needs water" sign on a dry plot. */

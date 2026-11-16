@@ -154,19 +154,47 @@ public class Farmer {
     }
 
     public void draw(Graphics2D g) {
+        draw(g, Season.HOT, Weather.SUNNY);
+    }
+
+    public void draw(Graphics2D g, Season season) {
+        draw(g, season, Weather.SUNNY);
+    }
+
+    public void draw(Graphics2D g, Season season, Weather weather) {
         // while sliding, draw part of the way back towards the tile we came from
         double back = (double) stepTicks / STEP_TICKS;
         int x = (int) ((col - facing.dx * back) * Farm.TILE);
         int y = (int) ((row - facing.dy * back) * Farm.TILE);
         int bob = stepTicks > 0 && (stepTicks / 2) % 2 == 0 ? 1 : 0;
+        boolean rainGear = weather == Weather.RAINY || weather == Weather.STORMY;
+        boolean winterGear = weather == Weather.SNOWY || (season == Season.COOL && !rainGear);
 
         g.setColor(new Color(0, 0, 0, 50));
         g.fillOval(x + 7, y + 26, 18, 6);
         g.setColor(new Color(70, 50, 40));
         g.fillRect(x + 11, y + 25 - bob, 4, 5);
         g.fillRect(x + 17, y + 25 + bob - 1, 4, 5);
-        g.setColor(new Color(60, 100, 190));            // overalls
-        g.fillRoundRect(x + 9, y + 14, 14, 13, 4, 4);
+        if (winterGear) {
+            g.setColor(new Color(165, 65, 65));         // winter coat
+            g.fillRoundRect(x + 7, y + 12, 18, 15, 5, 5);
+            g.setColor(new Color(100, 170, 205));       // warm scarf
+            g.fillRoundRect(x + 8, y + 12, 16, 4, 3, 3);
+            g.setColor(new Color(245, 220, 170));
+            g.fillOval(x + 15, y + 18, 2, 2);
+            g.fillOval(x + 15, y + 22, 2, 2);
+        } else if (rainGear) {
+            g.setColor(new Color(240, 185, 45));         // waterproof raincoat
+            g.fillRoundRect(x + 7, y + 12, 18, 15, 5, 5);
+            g.setColor(new Color(45, 125, 165));         // blue raincoat trim
+            g.fillRoundRect(x + 8, y + 12, 16, 4, 3, 3);
+            g.setColor(new Color(255, 230, 130));
+            g.fillOval(x + 15, y + 19, 2, 2);
+            g.fillOval(x + 15, y + 23, 2, 2);
+        } else {
+            g.setColor(new Color(60, 100, 190));        // overalls
+            g.fillRoundRect(x + 9, y + 14, 14, 13, 4, 4);
+        }
         g.setColor(new Color(250, 210, 170));           // face
         g.fillOval(x + 9, y + 3, 14, 14);
         g.setColor(new Color(40, 30, 30));
@@ -176,10 +204,22 @@ public class Farmer {
             case RIGHT: g.fillRect(x + 19, y + 10, 2, 2); break;
             case UP:    break;
         }
-        g.setColor(new Color(235, 200, 90));            // straw hat
-        g.fillOval(x + 4, y + 4, 24, 6);
-        g.fillOval(x + 10, y - 1, 12, 9);
-        g.setColor(new Color(200, 60, 50));
-        g.fillRect(x + 10, y + 4, 12, 2);
+        if (winterGear) {
+            g.setColor(new Color(65, 105, 150));        // winter hat
+            g.fillOval(x + 8, y - 2, 16, 12);
+            g.fillRect(x + 8, y + 5, 16, 4);
+            g.setColor(new Color(230, 235, 240));
+            g.fillOval(x + 14, y - 4, 4, 4);
+        } else if (rainGear) {
+            g.setColor(new Color(245, 205, 75));        // rain hood
+            g.fillArc(x + 6, y - 2, 20, 17, 0, 180);
+            g.fillRect(x + 5, y + 5, 22, 3);
+        } else {
+            g.setColor(new Color(235, 200, 90));        // straw hat
+            g.fillOval(x + 4, y + 4, 24, 6);
+            g.fillOval(x + 10, y - 1, 12, 9);
+            g.setColor(new Color(200, 60, 50));
+            g.fillRect(x + 10, y + 4, 12, 2);
+        }
     }
 }

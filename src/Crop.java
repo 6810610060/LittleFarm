@@ -9,6 +9,23 @@ public abstract class Crop {
     public abstract int getDaysToMature();
     public abstract int getSeedPrice();
     public abstract int getSellPrice();
+    public abstract Season[] getGrowingSeasons();
+
+    public boolean canGrowIn(Season season) {
+        for (Season growingSeason : getGrowingSeasons()) {
+            if (growingSeason == season) return true;
+        }
+        return false;
+    }
+
+    public String getGrowingSeasonNames() {
+        StringBuilder names = new StringBuilder();
+        for (Season season : getGrowingSeasons()) {
+            if (names.length() > 0) names.append(", ");
+            names.append(season.getLabel());
+        }
+        return names.toString();
+    }
 
     /** Draws the ripe produce; (cx, cy) is the base of the plant's stem. */
     protected abstract void drawProduce(Graphics2D g, int cx, int cy);

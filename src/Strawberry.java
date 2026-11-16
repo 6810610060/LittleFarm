@@ -9,6 +9,7 @@ public class Strawberry extends Crop {
     @Override public int getDaysToMature() { return 6; }
     @Override public int getSeedPrice() { return 100; }
     @Override public int getSellPrice() { return 60; }
+    @Override public Season[] getGrowingSeasons() { return new Season[] {Season.HOT, Season.COOL}; }
 
     @Override
     public String getNote() {
