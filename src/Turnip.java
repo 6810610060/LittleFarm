@@ -6,6 +6,7 @@ public class Turnip extends Crop {
     @Override public int getDaysToMature() { return 3; }
     @Override public int getSeedPrice() { return 20; }
     @Override public int getSellPrice() { return 60; }
+    @Override public Season[] getGrowingSeasons() { return new Season[] {Season.HOT, Season.RAINY}; }
 
     @Override
     protected void drawProduce(Graphics2D g, int cx, int cy) {

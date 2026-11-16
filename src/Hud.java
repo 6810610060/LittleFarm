@@ -18,13 +18,15 @@ public class Hud {
         clock.getWeather().drawIcon(g, 168, top + 5);
         g.setColor(Ui.HIGHLIGHT);
         g.drawString(farmer.getGold() + "/" + FarmScreen.GOAL_GOLD + "G", 198, top + 20);
+        g.setColor(new Color(190, 235, 175));
+        g.drawString(clock.getSeason().getLabel(), 300, top + 20);
 
         g.setColor(Color.WHITE);
-        g.drawString("Energy", 340, top + 20);
+        g.drawString("Energy", 370, top + 20);
         g.setColor(new Color(40, 30, 20));
-        g.fillRect(410, top + 9, 150, 13);
+        g.fillRect(430, top + 9, 150, 13);
         g.setColor(farmer.getEnergy() < 25 ? new Color(230, 80, 60) : new Color(110, 210, 90));
-        g.fillRect(410, top + 9, 150 * farmer.getEnergy() / Farmer.MAX_ENERGY, 13);
+        g.fillRect(430, top + 9, 150 * farmer.getEnergy() / Farmer.MAX_ENERGY, 13);
 
         g.setFont(Ui.font(12));
         slot(g, 8, top + 30, farmer.getCan().getLabel(), false);

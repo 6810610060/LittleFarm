@@ -6,6 +6,7 @@ public class Potato extends Crop {
     @Override public int getDaysToMature() { return 5; }
     @Override public int getSeedPrice() { return 50; }
     @Override public int getSellPrice() { return 140; }
+    @Override public Season[] getGrowingSeasons() { return new Season[] {Season.RAINY, Season.COOL}; }
 
     @Override
     protected void drawProduce(Graphics2D g, int cx, int cy) {

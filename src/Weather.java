@@ -4,8 +4,10 @@ import java.util.Random;
 
 /** Each kind of weather carries its own odds and effects, so adding a STORM means adding one constant. */
 public enum Weather {
-    SUNNY("Sunny", "A fine sunny day", 75, false),
-    RAINY("Rain", "Rain today - no need to water", 25, true);
+    SUNNY("Sunny", "A fine sunny day", 65, false),
+    RAINY("Rain", "Rain today - no need to water", 25, true),
+    STORMY("Storm", "A storm damaged some crops", 10, true),
+    SNOWY("Snow", "Snowfall covered the farm", 0, true);
 
     private final String label;
     private final String morningText;
@@ -24,10 +26,20 @@ public enum Weather {
     public boolean watersCrops() { return watersCrops; }
 
     public static Weather forecast(Random rng) {
+        return forecast(rng, null);
+    }
+
+    /** Rain is more common during the rainy season; other seasons keep the normal forecast odds. */
+    public static Weather forecast(Random rng, Season season) {
         int roll = rng.nextInt(100);
-        for (Weather weather : values()) {
-            if (roll < weather.chance) return weather;
-            roll -= weather.chance;
+        int[] chances;
+        if (season == Season.RAINY) chances = new int[] {30, 55, 15, 0};
+        else if (season == Season.COOL) chances = new int[] {45, 10, 10, 35};
+        else chances = new int[] {65, 25, 10, 0};
+        Weather[] weatherTypes = values();
+        for (int i = 0; i < weatherTypes.length; i++) {
+            if (roll < chances[i]) return weatherTypes[i];
+            roll -= chances[i];
         }
         return SUNNY;
     }
@@ -50,6 +62,22 @@ public enum Weather {
                 g.fillOval(x + 6, y + 1, 14, 13);
                 g.setColor(new Color(110, 170, 255));
                 for (int i = 0; i < 3; i++) g.drawLine(x + 4 + i * 6, y + 16, x + 2 + i * 6, y + 20);
+                break;
+            case STORMY:
+                g.setColor(new Color(95, 100, 115));
+                g.fillOval(x, y + 5, 12, 10);
+                g.fillOval(x + 6, y + 2, 14, 13);
+                g.setColor(new Color(255, 220, 70));
+                g.fillPolygon(new int[] {x + 11, x + 7, x + 12, x + 9, x + 17, x + 13},
+                              new int[] {y + 13, y + 19, y + 18, y + 25, y + 16, y + 17}, 6);
+                break;
+            case SNOWY:
+                g.setColor(new Color(220, 235, 250));
+                g.fillOval(x, y + 5, 12, 10);
+                g.fillOval(x + 6, y + 2, 14, 13);
+                g.setColor(Color.WHITE);
+                g.fillOval(x + 3, y + 17, 3, 3);
+                g.fillOval(x + 12, y + 19, 3, 3);
                 break;
         }
     }

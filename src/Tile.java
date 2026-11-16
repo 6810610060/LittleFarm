@@ -13,6 +13,14 @@ public class Tile {
     public Crop getCrop() { return crop; }
     public boolean hasCrop() { return crop != null; }
 
+    /** Removes a crop damaged by a storm and returns its name, or null if the plot is empty. */
+    public String destroyCrop() {
+        if (crop == null) return null;
+        String name = crop.getName();
+        crop = null;
+        return name;
+    }
+
     public void till() throws FarmException {
         if (type == TileType.SOIL) throw new FarmException("Already tilled");
         if (type != TileType.GRASS) throw new FarmException("The hoe can't dig here");
