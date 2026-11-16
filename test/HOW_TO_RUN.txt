@@ -1,0 +1,25 @@
+CN201 ข้อ 1.4 One Refactoring - วิธีรัน Golden Output Test
+==========================================================
+
+คลาสทดสอบ : test/SaveGameGoldenTest.java
+Golden     : test/golden_output.txt   (สร้างจาก Source Code เดิม ก่อน Refactoring)
+
+รันจากโฟลเดอร์ LittleFarm-main
+
+1) Compile (ตัวเกมยังใช้คำสั่งเดิม  javac -d out src/*.java  ได้ตามปกติ)
+   javac -d out src/*.java test/*.java
+
+2) รันทดสอบแล้วเก็บผลลัพธ์ลงไฟล์
+   java -cp out SaveGameGoldenTest > test/after_output.txt
+
+3) เปรียบเทียบกับ Golden Output ทุกบรรทัด ทุกตัวอักษร
+   Windows (cmd)        : fc test\golden_output.txt test\after_output.txt
+   Windows (PowerShell) : Compare-Object (Get-Content test\golden_output.txt) (Get-Content test\after_output.txt)
+   macOS / Linux / Git Bash : diff test/golden_output.txt test/after_output.txt
+
+   ผ่าน = fc แสดง "FC: no differences encountered" / Compare-Object ไม่แสดงอะไร / diff ไม่แสดงอะไร
+
+หมายเหตุ
+- คลาสทดสอบเขียน save ลงไฟล์ชั่วคราวใน temp folder แล้วลบทิ้งเอง
+  ไม่ยุ่งกับไฟล์เซฟจริงของเกม (littlefarm_save.txt)
+- ใช้ Random(42) แบบกำหนด seed ทำให้ผลลัพธ์เหมือนเดิมทุกครั้งที่รัน

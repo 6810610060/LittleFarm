@@ -1,0 +1,92 @@
+===== CASE 1: new game =====
+little-farm save 1
+day 1
+weather SUNNY
+gold 300
+earned 0
+can 20
+seeds Turnip 5
+seeds Potato 0
+seeds Strawberry 0
+villager 0 0
+feed 0
+soil 4 6 - 0 dry
+soil 5 6 - 0 dry
+soil 6 6 - 0 dry
+soil 7 6 - 0 dry
+soil 8 6 - 0 dry
+soil 4 7 - 0 dry
+soil 5 7 - 0 dry
+soil 6 7 - 0 dry
+soil 7 7 - 0 dry
+soil 8 7 - 0 dry
+(21 lines)
+
+-- news after night 1: [Chicken 2 was hungry (love 0 -> 0)]
+-- news after night 2: [Chicken 1 has egg ready!, Chicken 2 was hungry (love 0 -> 0)]
+-- news after night 3: [Chicken 2 was hungry (love 0 -> 0)]
+===== CASE 2: played game =====
+little-farm save 1
+day 4
+weather SUNNY
+gold 450
+earned 150
+can 14
+seeds Turnip 3
+seeds Potato 1
+seeds Strawberry 0
+basket Turnip 2
+basket Egg 1
+villager 2 1
+request Turnip 3 360 4
+feed 4
+animal Chicken 0 3 0 yes
+animal Chicken 1 0 0 no
+animal Cow 0 3 3 no
+soil 4 6 Turnip 3 wet
+soil 5 6 Turnip 1 dry
+soil 6 6 Potato 0 dry
+soil 7 6 - 0 dry
+soil 8 6 - 0 dry
+soil 9 6 Strawberry 1 dry
+soil 4 7 - 0 dry
+soil 5 7 - 0 dry
+soil 6 7 - 0 dry
+soil 7 7 - 0 dry
+soil 8 7 - 0 dry
+soil 9 7 - 0 dry
+(29 lines)
+
+===== CASE 3: load then save again =====
+little-farm save 1
+day 4
+weather SUNNY
+gold 450
+earned 150
+can 14
+seeds Turnip 3
+seeds Potato 1
+seeds Strawberry 0
+basket Turnip 2
+basket Egg 1
+villager 2 1
+request Turnip 3 360 4
+feed 4
+animal Chicken 0 3 0 yes
+animal Chicken 1 0 0 no
+animal Cow 0 3 3 no
+soil 4 6 Turnip 3 wet
+soil 5 6 Turnip 1 dry
+soil 6 6 Potato 0 dry
+soil 7 6 - 0 dry
+soil 8 6 - 0 dry
+soil 9 6 Strawberry 1 dry
+soil 4 7 - 0 dry
+soil 5 7 - 0 dry
+soil 6 7 - 0 dry
+soil 7 7 - 0 dry
+soil 8 7 - 0 dry
+soil 9 7 - 0 dry
+(29 lines)
+
+describe() = Day 4, 450G
