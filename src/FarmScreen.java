@@ -162,10 +162,6 @@ public class FarmScreen implements Screen {
                 return;
             }
             Tool tool = farmer.toolFor(tile);
-<<<<<<< HEAD
-            if (tool == null)
-                throw new FarmException(tile.hasCrop() ? "Already watered - it grows tonight" : "Nothing to do here");
-=======
             if (tool == null) throw new FarmException(tile.hasCrop() ? "Already watered - it grows tonight" : "Nothing to do here");
             if (tool instanceof SeedBag) {
                 String cropName = ((SeedBag) tool).getCropName();
@@ -174,7 +170,6 @@ public class FarmScreen implements Screen {
                     throw new FarmException(cropName + " can only be planted in " + crop.getGrowingSeasonNames());
                 }
             }
->>>>>>> origin/main
             farmer.use(tool, tile);
             if (checklist != null && tool instanceof SeedBag)
                 checklist.complete(Checklist.Step.PLANT);
@@ -304,11 +299,7 @@ public class FarmScreen implements Screen {
         int goldBefore = farmer.getGold();
         farmer.earn(earned);
         clock.nextDay(rng);
-<<<<<<< HEAD
-        lines.addAll(farm.newDay(clock.getWeather())); // the animals' news
-=======
         lines.addAll(farm.newDay(clock.getWeather(), rng));   // crop and animal news
->>>>>>> origin/main
         String news = farm.getVillager().newDay(clock.getDay(), rng);
         if (news != null)
             lines.add(news);
@@ -375,13 +366,8 @@ public class FarmScreen implements Screen {
         g.setColor(new Color(255, 255, 255, 110)); // the tile SPACE will act on
         g.drawRect(col * Farm.TILE, row * Farm.TILE, Farm.TILE - 1, Farm.TILE - 1);
         drawPeople(g);
-<<<<<<< HEAD
-        if (clock.getWeather() == Weather.RAINY)
-            drawRain(g);
-=======
         if (clock.getWeather() == Weather.SNOWY) drawSnow(g);
         else if (clock.getWeather().watersCrops()) drawRain(g);
->>>>>>> origin/main
         g.setColor(new Color(15, 15, 50, clock.darkness()));
         g.fillRect(0, 0, Ui.WIDTH, Ui.MAP_HEIGHT);
         for (FloatingText text : floatingTexts)
@@ -404,17 +390,9 @@ public class FarmScreen implements Screen {
         Villager villager = farm.getVillager();
         boolean villagerBehind = villager.getRow() <= farmer.getRow();
         drawAnimals(g, true);
-<<<<<<< HEAD
-        if (villagerBehind)
-            villager.draw(g, game.getFrames());
-        farmer.draw(g);
-        if (!villagerBehind)
-            villager.draw(g, game.getFrames());
-=======
         if (villagerBehind) villager.draw(g, game.getFrames());
         farmer.draw(g, clock.getSeason(), clock.getWeather());
         if (!villagerBehind) villager.draw(g, game.getFrames());
->>>>>>> origin/main
         drawAnimals(g, false);
     }
 
