@@ -48,12 +48,15 @@ public class FarmScreen implements Screen {
         try {
             game.getSaveGame().loadInto(screen.farm, screen.farmer, screen.clock);
             screen.say("Welcome back!");
+            screen.beginDay();
+            game.setScreen(screen); // เข้าหน้าเกมเมื่อโหลดสำเร็จเท่านั้น AI
+            return screen;
         } catch (IOException e) {
-            screen = newGame(game);
-            screen.say("Couldn't read the save (" + e.getMessage() + ") - started a new farm");
+            TitleScreen title = new TitleScreen(game);
+            title.setError("Couldn't read the save (" + e.getMessage() + ")");
+            game.setScreen(title);
+            return null;
         }
-        screen.beginDay();
-        return screen;
     }
 
     public void beginDay() {
@@ -297,8 +300,10 @@ public class FarmScreen implements Screen {
         int goldBefore = farmer.getGold();
         farmer.earn(earned);
         clock.nextDay(rng);
+
         lines.addAll(farm.newDay(clock.getWeather(), rng)); // crop and animal news
         String news = farm.getVillager().newDay(clock.getDay(), rng, game.getMarket());
+
         if (news != null)
             lines.add(news);
         farmer.wakeUp(DOOR_COL, DOOR_ROW, passedOut);
@@ -375,6 +380,7 @@ public class FarmScreen implements Screen {
         drawHint(g, col, row);
 
         Hud.draw(g, farmer, clock, farm.getVillager(), game.getMarket());
+
         if (checklist != null)
             checklist.draw(g, 195, 36);
         if (messageTicks > 0)

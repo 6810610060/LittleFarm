@@ -3,8 +3,9 @@ import java.awt.Graphics2D;
 
 public class TitleScreen implements Screen {
     private final GamePanel game;
-    private final Farm backdrop = new Farm();   // an empty farm behind the menu
+    private final Farm backdrop = new Farm(); // an empty farm behind the menu
     private final Menu menu = new Menu();
+    private String errorMessage = null;
 
     public TitleScreen(GamePanel game) {
         this.game = game;
@@ -21,8 +22,13 @@ public class TitleScreen implements Screen {
         menu.add("Quit", game::quit);
     }
 
+    public void setError(String msg) {
+        this.errorMessage = msg;
+    }
+
     @Override
     public void keyPressed(int code) {
+        errorMessage = null;
         menu.keyPressed(code);
     }
 
@@ -37,7 +43,13 @@ public class TitleScreen implements Screen {
         Ui.centered(g, "LITTLE FARM", 48, 130, Ui.HIGHLIGHT);
         Ui.centered(g, "Grandpa left you his farm - and a " + FarmScreen.GOAL_GOLD + "G debt.", 15, 180, Color.WHITE);
         Ui.centered(g, "Pay it off by the end of day " + FarmScreen.LAST_DAY + ".", 15, 202, Color.WHITE);
+
         menu.draw(g, 270, Color.WHITE);
+
+        if (errorMessage != null) {
+            Ui.centered(g, errorMessage, 14, 465, new Color(255, 100, 100));
+        }
+
         Ui.centered(g, "UP/DOWN choose    ENTER select", 13, 520, new Color(190, 190, 190));
     }
 }
