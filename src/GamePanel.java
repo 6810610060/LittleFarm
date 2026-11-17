@@ -13,28 +13,35 @@ import javax.swing.JPanel;
 import javax.swing.Timer;
 
 /**
- * Hosts whichever Screen is showing. A Swing Timer calls tick() then repaint() about 60 times a second,
+ * Hosts whichever Screen is showing. A Swing Timer calls tick() then repaint()
+ * about 60 times a second,
  * and every key press is passed on to the current screen.
  */
 public class GamePanel extends JPanel implements ActionListener {
-    private static final double START_SCALE = 1.25;   // the window opens at 800x700; drag it to resize
+    private static final double START_SCALE = 1.25; // the window opens at 800x700; drag it to resize
 
     private final Timer timer = new Timer(16, this);
     private final Set<Integer> keysDown = new HashSet<>();
     private final SaveGame saveGame = new SaveGame("littlefarm_save.txt");
+    private final MarketPriceStrategy market;
     private Screen screen;
     private int frames;
 
-    public GamePanel() {
+    public GamePanel(MarketPriceStrategy market) {
+        this.market = market;
         setPreferredSize(new Dimension((int) (Ui.WIDTH * START_SCALE), (int) (Ui.HEIGHT * START_SCALE)));
-        setBackground(Color.BLACK);   // the bars beside the game when the window's shape doesn't match
+        setBackground(Color.BLACK); // the bars beside the game when the window's shape doesn't match
         setFocusable(true);
         addKeyListener(new KeyAdapter() {
             @Override
-            public void keyPressed(KeyEvent e) { pressKey(e.getKeyCode()); }
+            public void keyPressed(KeyEvent e) {
+                pressKey(e.getKeyCode());
+            }
 
             @Override
-            public void keyReleased(KeyEvent e) { releaseKey(e.getKeyCode()); }
+            public void keyReleased(KeyEvent e) {
+                releaseKey(e.getKeyCode());
+            }
         });
         screen = new TitleScreen(this);
     }
@@ -44,7 +51,8 @@ public class GamePanel extends JPanel implements ActionListener {
     }
 
     void pressKey(int code) {
-        if (!keysDown.add(code)) return;   // ignore the OS's auto-repeat while a key is held
+        if (!keysDown.add(code))
+            return; // ignore the OS's auto-repeat while a key is held
         screen.keyPressed(code);
     }
 
@@ -52,10 +60,25 @@ public class GamePanel extends JPanel implements ActionListener {
         keysDown.remove(code);
     }
 
-    public void setScreen(Screen next) { screen = next; }
-    public void showTitle() { screen = new TitleScreen(this); }
-    public SaveGame getSaveGame() { return saveGame; }
-    public int getFrames() { return frames; }
+    public void setScreen(Screen next) {
+        screen = next;
+    }
+
+    public void showTitle() {
+        screen = new TitleScreen(this);
+    }
+
+    public SaveGame getSaveGame() {
+        return saveGame;
+    }
+
+    public MarketPriceStrategy getMarket() {
+        return market;
+    }
+
+    public int getFrames() {
+        return frames;
+    }
 
     public boolean isHeld(int key, int otherKey) {
         return keysDown.contains(key) || keysDown.contains(otherKey);
@@ -79,7 +102,8 @@ public class GamePanel extends JPanel implements ActionListener {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        // the game always draws at 640x560; here it is scaled up to fill the window, keeping its shape
+        // the game always draws at 640x560; here it is scaled up to fill the window,
+        // keeping its shape
         double scale = Math.min(getWidth() / (double) Ui.WIDTH, getHeight() / (double) Ui.HEIGHT);
         Graphics2D g2 = (Graphics2D) g.create();
         g2.translate((getWidth() - Ui.WIDTH * scale) / 2, (getHeight() - Ui.HEIGHT * scale) / 2);

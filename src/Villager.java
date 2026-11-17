@@ -3,15 +3,18 @@ import java.awt.Font;
 import java.awt.Graphics2D;
 import java.util.Random;
 
-/** A neighbour who stands on the farm, chats, and now and then asks for crops at double the price. */
+/**
+ * A neighbour who stands on the farm, chats, and now and then asks for crops at
+ * double the price.
+ */
 public class Villager {
     public static final int MAX_FRIENDSHIP = 5;
     private static final int FIRST_REQUEST_DAY = 2;
     private static final String[] CHATTER = {
-        "Lovely day for farming, isn't it?",
-        "Your grandpa grew the best turnips in the valley.",
-        "Strawberries keep fruiting once they start, you know.",
-        "Don't stay up past midnight - you'll pass out!",
+            "Lovely day for farming, isn't it?",
+            "Your grandpa grew the best turnips in the valley.",
+            "Strawberries keep fruiting once they start, you know.",
+            "Don't stay up past midnight - you'll pass out!",
     };
 
     private final String name;
@@ -27,9 +30,13 @@ public class Villager {
         this.row = row;
     }
 
-    /** @return what the villager says. Hands over the reward if the farmer brought what was asked for. */
+    /**
+     * @return what the villager says. Hands over the reward if the farmer brought
+     *         what was asked for.
+     */
     public String talk(Farmer farmer) {
-        if (request == null) return name + ": " + CHATTER[chats++ % CHATTER.length];
+        if (request == null)
+            return name + ": " + CHATTER[chats++ % CHATTER.length];
 
         String crop = request.getCropName();
         if (farmer.getBasket().remove(crop, request.getAmount())) {
@@ -45,7 +52,7 @@ public class Villager {
     }
 
     /** @return news for the end-of-day summary, or null if nothing happened */
-    public String newDay(int day, Random rng) {
+    public String newDay(int day, Random rng, MarketPriceStrategy market) {
         String news = null;
         if (request != null && !request.passDay()) {
             news = name + " gave up waiting for the " + request.getCropName() + ".";
@@ -53,21 +60,40 @@ public class Villager {
             request = null;
         }
         if (request == null && (day == FIRST_REQUEST_DAY || rng.nextInt(3) == 0)) {
-            request = Request.random(day, rng);
+            request = Request.random(day, rng, market);
             String asked = name + " has a request for you!";
             news = news == null ? asked : news + " " + asked;
         }
         return news;
     }
 
-    public String getName() { return name; }
-    public int getCol() { return col; }
-    public int getRow() { return row; }
-    public Request getRequest() { return request; }
-    public int getFriendship() { return friendship; }
-    public int getRequestsDone() { return requestsDone; }
+    public String getName() {
+        return name;
+    }
 
-    public void setRequest(Request request) { this.request = request; }
+    public int getCol() {
+        return col;
+    }
+
+    public int getRow() {
+        return row;
+    }
+
+    public Request getRequest() {
+        return request;
+    }
+
+    public int getFriendship() {
+        return friendship;
+    }
+
+    public int getRequestsDone() {
+        return requestsDone;
+    }
+
+    public void setRequest(Request request) {
+        this.request = request;
+    }
 
     public void restore(int friendship, int requestsDone) {
         if (friendship < 0 || friendship > MAX_FRIENDSHIP || requestsDone < 0) {
@@ -81,18 +107,18 @@ public class Villager {
         int x = col * Farm.TILE, y = row * Farm.TILE;
         g.setColor(new Color(0, 0, 0, 50));
         g.fillOval(x + 7, y + 26, 18, 6);
-        g.setColor(new Color(215, 105, 145));           // dress
-        g.fillPolygon(new int[] {x + 11, x + 21, x + 25, x + 7}, new int[] {y + 14, y + 14, y + 29, y + 29}, 4);
-        g.setColor(new Color(250, 210, 170));           // face
+        g.setColor(new Color(215, 105, 145)); // dress
+        g.fillPolygon(new int[] { x + 11, x + 21, x + 25, x + 7 }, new int[] { y + 14, y + 14, y + 29, y + 29 }, 4);
+        g.setColor(new Color(250, 210, 170)); // face
         g.fillOval(x + 9, y + 3, 14, 14);
         g.setColor(new Color(40, 30, 30));
         g.fillRect(x + 12, y + 10, 2, 2);
         g.fillRect(x + 18, y + 10, 2, 2);
-        g.setColor(new Color(175, 170, 175));           // grey hair and bun
+        g.setColor(new Color(175, 170, 175)); // grey hair and bun
         g.fillArc(x + 8, y + 1, 16, 12, 0, 180);
         g.fillOval(x + 12, y - 4, 8, 7);
 
-        if (request != null) {   // a bobbing "!" bubble while she wants something
+        if (request != null) { // a bobbing "!" bubble while she wants something
             int bob = (frames / 15) % 2;
             g.setColor(Color.WHITE);
             g.fillOval(x + 20, y - 18 - bob, 14, 16);

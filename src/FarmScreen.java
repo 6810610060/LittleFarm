@@ -162,7 +162,8 @@ public class FarmScreen implements Screen {
                 return;
             }
             Tool tool = farmer.toolFor(tile);
-            if (tool == null) throw new FarmException(tile.hasCrop() ? "Already watered - it grows tonight" : "Nothing to do here");
+            if (tool == null)
+                throw new FarmException(tile.hasCrop() ? "Already watered - it grows tonight" : "Nothing to do here");
             if (tool instanceof SeedBag) {
                 String cropName = ((SeedBag) tool).getCropName();
                 Crop crop = CropFactory.create(cropName);
@@ -261,7 +262,7 @@ public class FarmScreen implements Screen {
             throw new FarmException("Nothing to ship - harvest something first");
         int value = 0;
         for (Map.Entry<String, Integer> entry : basket.asMap().entrySet()) {
-            value += Market.sellPriceOf(entry.getKey()) * entry.getValue();
+            value += game.getMarket().applyPrice(Market.sellPriceOf(entry.getKey())) * entry.getValue();
             shippedToday.add(entry.getKey(), entry.getValue());
         }
         basket.clear();
@@ -288,7 +289,7 @@ public class FarmScreen implements Screen {
             lines.add("You passed out at midnight! Half energy today.");
         int earned = 0;
         for (Map.Entry<String, Integer> entry : shippedToday.asMap().entrySet()) {
-            int value = Market.sellPriceOf(entry.getKey()) * entry.getValue();
+            int value = game.getMarket().applyPrice(Market.sellPriceOf(entry.getKey())) * entry.getValue();
             lines.add(String.format("Shipped %-10s x%-3d %6dG", entry.getKey(), entry.getValue(), value));
             earned += value;
         }
@@ -299,8 +300,10 @@ public class FarmScreen implements Screen {
         int goldBefore = farmer.getGold();
         farmer.earn(earned);
         clock.nextDay(rng);
-        lines.addAll(farm.newDay(clock.getWeather(), rng));   // crop and animal news
-        String news = farm.getVillager().newDay(clock.getDay(), rng);
+
+        lines.addAll(farm.newDay(clock.getWeather(), rng)); // crop and animal news
+        String news = farm.getVillager().newDay(clock.getDay(), rng, game.getMarket());
+
         if (news != null)
             lines.add(news);
         farmer.wakeUp(DOOR_COL, DOOR_ROW, passedOut);
@@ -366,15 +369,18 @@ public class FarmScreen implements Screen {
         g.setColor(new Color(255, 255, 255, 110)); // the tile SPACE will act on
         g.drawRect(col * Farm.TILE, row * Farm.TILE, Farm.TILE - 1, Farm.TILE - 1);
         drawPeople(g);
-        if (clock.getWeather() == Weather.SNOWY) drawSnow(g);
-        else if (clock.getWeather().watersCrops()) drawRain(g);
+        if (clock.getWeather() == Weather.SNOWY)
+            drawSnow(g);
+        else if (clock.getWeather().watersCrops())
+            drawRain(g);
         g.setColor(new Color(15, 15, 50, clock.darkness()));
         g.fillRect(0, 0, Ui.WIDTH, Ui.MAP_HEIGHT);
         for (FloatingText text : floatingTexts)
             text.draw(g);
         drawHint(g, col, row);
 
-        Hud.draw(g, farmer, clock, farm.getVillager());
+        Hud.draw(g, farmer, clock, farm.getVillager(), game.getMarket());
+
         if (checklist != null)
             checklist.draw(g, 195, 36);
         if (messageTicks > 0)
@@ -390,9 +396,11 @@ public class FarmScreen implements Screen {
         Villager villager = farm.getVillager();
         boolean villagerBehind = villager.getRow() <= farmer.getRow();
         drawAnimals(g, true);
-        if (villagerBehind) villager.draw(g, game.getFrames());
+        if (villagerBehind)
+            villager.draw(g, game.getFrames());
         farmer.draw(g, clock.getSeason(), clock.getWeather());
-        if (!villagerBehind) villager.draw(g, game.getFrames());
+        if (!villagerBehind)
+            villager.draw(g, game.getFrames());
         drawAnimals(g, false);
     }
 
