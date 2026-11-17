@@ -11,6 +11,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Saves the farm as plain text you can open and read, e.g.
+ * day 4
+ * weather RAINY
+ * gold 380
+ * seeds Turnip 2
+ * request Turnip 3 360 4 (crop amount reward daysLeft)
+ * soil 5 6 Turnip 1 wet (col row crop daysGrown wet/dry; "-" for an empty plot)
+ * feed 12
+ * animal Chicken 0 3 1 no (kind slot love fedDays ready yes/no)
+ */
 public class SaveGame {
     private static final String HEADER = "little-farm save 1";
     private static final String SECRET_SALT = "LittleFarm_AntiTamper_2026_#991";
