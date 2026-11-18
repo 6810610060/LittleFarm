@@ -53,10 +53,13 @@ public class SaveGame {
     public void save(Farm farm, Farmer farmer, GameClock clock) throws IOException {
         try (PrintWriter out = new PrintWriter(Files.newBufferedWriter(file))) {
             out.println(HEADER);
+
             saveClock(out, clock);
             saveFarmer(out, farmer);
             saveVillager(out, farm.getVillager());
+
             out.println("feed " + farmer.getFeed());
+
             saveAnimals(out, farm);
             saveSoil(out, farm);
         }
