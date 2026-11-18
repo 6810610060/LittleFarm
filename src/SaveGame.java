@@ -29,10 +29,6 @@ public class SaveGame {
         return Files.exists(file);
     }
 
-    /**
-     * A one-line description for the title menu, e.g. "Day 5, 780G", or null if
-     * there is no save.
-     */
     public String describe() {
         if (!exists())
             return null;
@@ -54,7 +50,6 @@ public class SaveGame {
         Files.deleteIfExists(file);
     }
 
-    /** Writes the whole game, one part at a time, in the order shown at the top of this class. */
     public void save(Farm farm, Farmer farmer, GameClock clock) throws IOException {
         try (PrintWriter out = new PrintWriter(Files.newBufferedWriter(file))) {
             out.println(HEADER);
@@ -67,28 +62,31 @@ public class SaveGame {
         }
     }
 
-    // --- Save Helpers (each one writes one part of the save file) ---
-
+    /** Saves the current day and weather. */
     private void saveClock(PrintWriter out, GameClock clock) {
         out.println("day " + clock.getDay());
         out.println("weather " + clock.getWeather().name());
     }
 
-    /** Gold, earnings, the watering can, every seed bag and the basket. */
+    /** Saves the farmer's money, earnings, watering can, seeds and basket. */
     private void saveFarmer(PrintWriter out, Farmer farmer) {
         out.println("gold " + farmer.getGold());
         out.println("earned " + farmer.getTotalEarned());
         out.println("can " + farmer.getCan().getWater());
-        for (String name : CropFactory.NAMES)
+
+        for (String name : CropFactory.NAMES) {
             out.println("seeds " + name + " " + farmer.getSeedBag(name).getSeeds());
+        }
+
         for (Map.Entry<String, Integer> entry : farmer.getBasket().asMap().entrySet()) {
             out.println("basket " + entry.getKey() + " " + entry.getValue());
         }
     }
 
-    /** Friendship, finished requests, and the open request if there is one. */
+    /** Saves the villager's friendship and current request. */
     private void saveVillager(PrintWriter out, Villager villager) {
         out.println("villager " + villager.getFriendship() + " " + villager.getRequestsDone());
+
         Request request = villager.getRequest();
         if (request != null) {
             out.println("request " + request.getCropName() + " " + request.getAmount() + " "
@@ -96,7 +94,7 @@ public class SaveGame {
         }
     }
 
-    /** One "animal" line for every animal in every pen. */
+    /** Saves all animals in their respective pens. */
     private void saveAnimals(PrintWriter out, Farm farm) {
         for (String kind : AnimalFactory.NAMES) {
             Pen pen = farm.penFor(kind);
@@ -107,13 +105,14 @@ public class SaveGame {
         }
     }
 
-    /** One "soil" line for every tilled plot, row by row. */
+    /** Saves the state of every soil tile and its crop. */
     private void saveSoil(PrintWriter out, Farm farm) {
         for (int r = 0; r < Farm.ROWS; r++) {
             for (int c = 0; c < Farm.COLS; c++) {
                 Tile tile = farm.tileAt(c, r);
-                if (tile.getType() != TileType.SOIL)
+                if (tile.getType() != TileType.SOIL) {
                     continue;
+                }
                 Crop crop = tile.getCrop();
                 out.println("soil " + c + " " + r + " "
                         + (crop == null ? "- 0" : crop.getName() + " " + crop.getDaysGrown())
@@ -125,8 +124,11 @@ public class SaveGame {
     /** Fills a brand-new farm, farmer and clock from the file. */
     public void loadInto(Farm farm, Farmer farmer, GameClock clock) throws IOException {
         List<String> lines = Files.readAllLines(file);
-        if (lines.isEmpty() || !lines.get(0).trim().equals(HEADER)) {
-            throw new IOException("line 1: invalid header");
+        if (lines.isEmpty()) {
+            throw new IOException("line 1: save file is empty");
+        }
+        if (!lines.get(0).trim().equals(HEADER)) {
+            throw new IOException("line 1: file has been modified (invalid header)");
         }
 
         for (int i = 1; i < lines.size(); i++) {
@@ -142,17 +144,30 @@ public class SaveGame {
                 switch (parts[0]) {
                     case "day":
                         requireLength(parts, 2);
-                        clock.setDay(parsePositiveInt(parts[1], "day"));
+                        int day = parsePositiveInt(parts[1], "day");
+                        if (day > 30) {
+                            throw new IllegalArgumentException("day value is out of range");
+                        }
+                        clock.setDay(day);
                         break;
 
                     case "weather":
                         requireLength(parts, 2);
+                        try {
+                            Weather.valueOf(parts[1]);
+                        } catch (IllegalArgumentException e) {
+                            throw new IllegalArgumentException("invalid weather type '" + parts[1] + "'");
+                        }
                         clock.setWeather(Weather.valueOf(parts[1]));
                         break;
 
                     case "gold":
                         requireLength(parts, 2);
-                        farmer.setGold(parseNonNegativeInt(parts[1], "gold"));
+                        int gold = parseNonNegativeInt(parts[1], "gold");
+                        if (gold > 99999) {
+                            throw new IllegalArgumentException("gold amount is suspiciously high");
+                        }
+                        farmer.setGold(gold);
                         break;
 
                     case "earned":
@@ -185,9 +200,12 @@ public class SaveGame {
 
                     case "seeds":
                         requireLength(parts, 3);
+                        if (!isValidCropName(parts[1])) {
+                            throw new IllegalArgumentException("unknown seed type '" + parts[1] + "'");
+                        }
                         SeedBag bag = farmer.getSeedBag(parts[1]);
                         if (bag == null) {
-                            throw new IllegalArgumentException("unknown seed '" + parts[1] + "'");
+                            throw new IllegalArgumentException("unknown seed bag '" + parts[1] + "'");
                         }
                         bag.setSeeds(parseNonNegativeInt(parts[2], "seeds"));
                         break;
@@ -199,7 +217,7 @@ public class SaveGame {
                         break;
 
                     case "soil":
-                        loadSoil(farm, parts);
+                        loadSoil(farm, parts); // เปลี่ยนกลับมาใช้ loadSoil ปกติ เพื่อรองรับแปลงดินที่ไถเพิ่ม
                         break;
 
                     case "feed":
@@ -212,10 +230,11 @@ public class SaveGame {
                         break;
 
                     default:
-                        throw new IllegalArgumentException("unknown entry '" + parts[0] + "'");
+                        throw new IllegalArgumentException("unrecognized or modified entry command '" + parts[0] + "'");
                 }
             } catch (Exception e) {
-                throw new IOException("line " + lineNumber + ": " + e.getMessage(), e);
+                throw new IOException("Line " + lineNumber + " has been modified or is corrupted: " + e.getMessage(),
+                        e);
             }
         }
     }
@@ -224,7 +243,7 @@ public class SaveGame {
         requireLength(parts, 6);
         Pen pen = farm.penFor(parts[1]);
         if (pen == null) {
-            throw new IllegalArgumentException("unknown animal '" + parts[1] + "'");
+            throw new IllegalArgumentException("unknown animal type '" + parts[1] + "'");
         }
         int slot = parseNonNegativeInt(parts[2], "slot");
         int love = parseNonNegativeInt(parts[3], "love");
@@ -236,11 +255,15 @@ public class SaveGame {
         } else if (parts[5].equals("no")) {
             ready = false;
         } else {
-            throw new IllegalArgumentException("ready must be 'yes' or 'no', got '" + parts[5] + "'");
+            throw new IllegalArgumentException("ready state must be 'yes' or 'no', got '" + parts[5] + "'");
         }
         pen.restoreAt(slot, love, fedDays, ready);
     }
 
+    /**
+     * โหลดข้อมูลดินตามพิกัดจริงที่บันทึกไว้
+     * (รองรับการไถดินเพิ่มและแปลงดินทุกรูปแบบ)
+     */
     private void loadSoil(Farm farm, String[] parts) throws FarmException {
         requireLength(parts, 6);
         int col = parseNonNegativeInt(parts[1], "col");
@@ -248,10 +271,10 @@ public class SaveGame {
 
         Tile tile = farm.tileAt(col, row);
         if (tile == null) {
-            throw new FarmException("soil is off the map");
+            throw new FarmException("soil coordinates (" + col + "," + row + ") are off the map");
         }
         if (tile.getType() != TileType.SOIL) {
-            tile.till();
+            tile.till(); // ถ้าช่องนี้ถูกไถเพิ่ม ระบบจะทำการไถดินให้อัตโนมัติตามพิกัดในไฟล์เซฟ
         }
 
         if (parts[5].equals("wet")) {
@@ -270,9 +293,13 @@ public class SaveGame {
             return;
         }
 
+        if (!isValidCropName(cropName)) {
+            throw new IllegalArgumentException("unknown crop name '" + cropName + "'");
+        }
+
         Crop crop = CropFactory.create(cropName);
         if (crop == null) {
-            throw new IllegalArgumentException("unknown crop '" + cropName + "'");
+            throw new IllegalArgumentException("failed to create crop '" + cropName + "'");
         }
         crop.setDaysGrown(daysGrown);
         tile.plant(crop);
@@ -292,24 +319,31 @@ public class SaveGame {
     private void requireLength(String[] parts, int expected) {
         if (parts.length != expected) {
             throw new IllegalArgumentException(
-                    "expected " + expected + " items for '" + parts[0] + "', got " + parts.length);
+                    "expected " + expected + " arguments, but got " + parts.length);
         }
     }
 
     private int parseNonNegativeInt(String value, String fieldName) {
-        int num = Integer.parseInt(value);
-        if (num < 0) {
-            throw new IllegalArgumentException(fieldName + " cannot be negative");
+        try {
+            int num = Integer.parseInt(value);
+            if (num < 0) {
+                throw new IllegalArgumentException(fieldName + " cannot be negative (" + value + ")");
+            }
+            return num;
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("invalid numeric format for " + fieldName + " ('" + value + "')");
         }
-        return num;
     }
 
     private int parsePositiveInt(String value, String fieldName) {
-        int num = Integer.parseInt(value);
-        if (num <= 0) {
-            throw new IllegalArgumentException(fieldName + " must be > 0");
+        try {
+            int num = Integer.parseInt(value);
+            if (num <= 0) {
+                throw new IllegalArgumentException(fieldName + " must be greater than 0 (" + value + ")");
+            }
+            return num;
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("invalid numeric format for " + fieldName + " ('" + value + "')");
         }
-        return num;
     }
 }
-
