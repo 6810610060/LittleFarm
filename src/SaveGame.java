@@ -53,41 +53,74 @@ public class SaveGame {
     public void save(Farm farm, Farmer farmer, GameClock clock) throws IOException {
         try (PrintWriter out = new PrintWriter(Files.newBufferedWriter(file))) {
             out.println(HEADER);
-            out.println("day " + clock.getDay());
-            out.println("weather " + clock.getWeather().name());
-            out.println("gold " + farmer.getGold());
-            out.println("earned " + farmer.getTotalEarned());
-            out.println("can " + farmer.getCan().getWater());
-            for (String name : CropFactory.NAMES)
-                out.println("seeds " + name + " " + farmer.getSeedBag(name).getSeeds());
-            for (Map.Entry<String, Integer> entry : farmer.getBasket().asMap().entrySet()) {
-                out.println("basket " + entry.getKey() + " " + entry.getValue());
-            }
-            Villager villager = farm.getVillager();
-            out.println("villager " + villager.getFriendship() + " " + villager.getRequestsDone());
-            Request request = villager.getRequest();
-            if (request != null) {
-                out.println("request " + request.getCropName() + " " + request.getAmount() + " "
-                        + request.getReward() + " " + request.getDaysLeft());
-            }
+
+            saveClock(out, clock);
+            saveFarmer(out, farmer);
+            saveVillager(out, farm.getVillager());
+
             out.println("feed " + farmer.getFeed());
-            for (String kind : AnimalFactory.NAMES) {
-                Pen pen = farm.penFor(kind);
-                for (Animal animal : pen.getAnimals()) {
-                    out.println("animal " + kind + " " + pen.slotOf(animal) + " " + animal.getLove() + " "
-                            + animal.getFedDays() + (animal.isProductReady() ? " yes" : " no"));
-                }
+
+            saveAnimals(out, farm);
+            saveSoil(out, farm);
+        }
+    }
+
+    /** Saves the current day and weather. */
+    private void saveClock(PrintWriter out, GameClock clock) {
+        out.println("day " + clock.getDay());
+        out.println("weather " + clock.getWeather().name());
+    }
+
+    /** Saves the farmer's money, earnings, watering can, seeds and basket. */
+    private void saveFarmer(PrintWriter out, Farmer farmer) {
+        out.println("gold " + farmer.getGold());
+        out.println("earned " + farmer.getTotalEarned());
+        out.println("can " + farmer.getCan().getWater());
+
+        for (String name : CropFactory.NAMES) {
+            out.println("seeds " + name + " " + farmer.getSeedBag(name).getSeeds());
+        }
+
+        for (Map.Entry<String, Integer> entry : farmer.getBasket().asMap().entrySet()) {
+            out.println("basket " + entry.getKey() + " " + entry.getValue());
+        }
+    }
+
+    /** Saves the villager's friendship and current request. */
+    private void saveVillager(PrintWriter out, Villager villager) {
+        out.println("villager " + villager.getFriendship() + " " + villager.getRequestsDone());
+
+        Request request = villager.getRequest();
+        if (request != null) {
+            out.println("request " + request.getCropName() + " " + request.getAmount() + " "
+                    + request.getReward() + " " + request.getDaysLeft());
+        }
+    }
+
+    /** Saves all animals in their respective pens. */
+    private void saveAnimals(PrintWriter out, Farm farm) {
+        for (String kind : AnimalFactory.NAMES) {
+            Pen pen = farm.penFor(kind);
+            for (Animal animal : pen.getAnimals()) {
+                out.println("animal " + kind + " " + pen.slotOf(animal) + " " + animal.getLove() + " "
+                        + animal.getFedDays() + (animal.isProductReady() ? " yes" : " no"));
             }
-            for (int r = 0; r < Farm.ROWS; r++) {
-                for (int c = 0; c < Farm.COLS; c++) {
-                    Tile tile = farm.tileAt(c, r);
-                    if (tile.getType() != TileType.SOIL)
-                        continue;
-                    Crop crop = tile.getCrop();
-                    out.println("soil " + c + " " + r + " "
-                            + (crop == null ? "- 0" : crop.getName() + " " + crop.getDaysGrown())
-                            + (tile.isWatered() ? " wet" : " dry"));
+        }
+    }
+
+    /** Saves the state of every soil tile and its crop. */
+    private void saveSoil(PrintWriter out, Farm farm) {
+        for (int r = 0; r < Farm.ROWS; r++) {
+            for (int c = 0; c < Farm.COLS; c++) {
+                Tile tile = farm.tileAt(c, r);
+                if (tile.getType() != TileType.SOIL) {
+                    continue;
                 }
+                Crop crop = tile.getCrop();
+                out.println("soil " + c + " " + r + " "
+                        + (crop == null ? "- 0" : crop.getName() + " " + crop.getDaysGrown())
+                        + (tile.isWatered() ? " wet" : " dry"));
+
             }
         }
     }
