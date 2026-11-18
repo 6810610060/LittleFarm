@@ -117,6 +117,7 @@ public class SaveGame {
                 out.println("soil " + c + " " + r + " "
                         + (crop == null ? "- 0" : crop.getName() + " " + crop.getDaysGrown())
                         + (tile.isWatered() ? " wet" : " dry"));
+
             }
         }
     }
