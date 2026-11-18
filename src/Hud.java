@@ -2,11 +2,16 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.util.List;
 
-/** The wooden bar under the farm: day, weather, gold, energy, can, seeds, basket and the current request. */
+/**
+ * The wooden bar under the farm: day, weather, gold, energy, can, seeds, basket
+ * and the current request.
+ */
 public class Hud {
-    private Hud() {}
+    private Hud() {
+    }
 
-    public static void draw(Graphics2D g, Farmer farmer, GameClock clock, Villager villager) {
+    public static void draw(Graphics2D g, Farmer farmer, GameClock clock, Villager villager,
+            MarketPriceStrategy market) {
         int top = Ui.MAP_HEIGHT;
         g.setColor(Ui.WOOD);
         g.fillRect(0, top, Ui.WIDTH, Ui.HUD_HEIGHT);
@@ -32,10 +37,18 @@ public class Hud {
         slot(g, 8, top + 30, farmer.getCan().getLabel(), false);
         List<SeedBag> bags = farmer.getSeedBags();
         for (int i = 0; i < bags.size(); i++) {
-            slot(g, 134 + i * 126, top + 30, (i + 1) + " " + bags.get(i).getLabel(), i == farmer.getSelectedSeedIndex());
+            slot(g, 134 + i * 126, top + 30, (i + 1) + " " + bags.get(i).getLabel(),
+                    i == farmer.getSelectedSeedIndex());
         }
         g.setColor(new Color(200, 185, 160));
         g.drawString("ESC menu", 548, top + 45);
+        // 1.3: the market mode, as a small tag just above the bar
+        String marketText = "Market: " + market.getName();
+        int tagWidth = g.getFontMetrics().stringWidth(marketText) + 12;
+        g.setColor(new Color(60, 45, 30, 220));
+        g.fillRoundRect(Ui.WIDTH - 8 - tagWidth, top - 24, tagWidth, 20, 6, 6);
+        g.setColor(Ui.HIGHLIGHT);
+        g.drawString(marketText, Ui.WIDTH - 2 - tagWidth, top - 10);
 
         g.setColor(new Color(230, 220, 200));
         g.drawString("Basket: " + farmer.getBasket(), 10, top + 71);
